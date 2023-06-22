@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ScreenDesk | Free Screen Recorder For Windows</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <style>
+    .container {
+      max-width: 600px;
+    }
+    h1 {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .btn {
+      font-size: 18px;
+      padding: 10px 20px;
+      margin: 0 10px;
+    }
+    #preview {
+      width: 100%;
+      height: auto;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <h1>Welcome To ScreenDesk - Free Screen Recorder Online For Windows</h1>
+    <div class="btn-group">
+      <button class="btn btn-primary" id="startBtn">Start Recording</button>
+      <button class="btn btn-danger" id="stopBtn" disabled>Stop Recording</button>
+    </div>
+    <video id="preview" controls></video>
+    <a id="downloadLink" href="#" download="recorded_video.webm" class="d-none">Download</a>
+  </div>
+
+  <script>
+   let mediaRecorder;
+let recordedChunks = [];
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const preview = document.getElementById('preview');
+const downloadLink = document.getElementById('downloadLink');
+
+startBtn.addEventListener('click', async () => {
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    mediaRecorder = new MediaRecorder(stream);
+    
+    mediaRecorder.addEventListener('dataavailable', (event) => {
+      if (event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
+    });
+    
+    mediaRecorder.addEventListener('stop', () => {
+      const recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+      preview.src = URL.createObjectURL(recordedBlob);
+      downloadLink.href = preview.src;
+      downloadLink.classList.remove('d-none');
+      downloadLink.download = 'recorded_video.webm';
+      recordedChunks = [];
+    });
+    
+    mediaRecorder.start();
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+  } catch (error) {
+    console.error('Error accessing screen:', error);
+  }
+});
+
+stopBtn.addEventListener('click', () => {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+});
+  </script>
+</body>
+</html>
